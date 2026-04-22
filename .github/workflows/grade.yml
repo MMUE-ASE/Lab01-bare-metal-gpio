@@ -31,4 +31,4 @@ jobs:
       - name: Ejecutar corrección
         run: |
           chmod +x scripts/check_answers.sh
-          bash scripts/check_answers.sh respuestas.env /tmp/answer_key.env
+          bash scripts/check_answers.sh respuestas.env /tmp/answer_key.env | tee -a "$GITHUB_STEP_SUMMARY"

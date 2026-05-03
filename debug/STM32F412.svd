@@ -28,7 +28,7 @@ Copyright (c) 2024 STMicroelectronics.
     <fpuPresent>true</fpuPresent>
     <nvicPrioBits>4</nvicPrioBits>
     <vendorSystickConfig>false</vendorSystickConfig>
-  </cpu>  
+  </cpu>
    <addressUnitBits>8</addressUnitBits>
    <width>32</width>
    <size>0x20</size>
@@ -12092,7 +12092,7 @@ Copyright (c) 2024 STMicroelectronics.
         <name>DMA2_Stream0</name>
         <description>DMA2 Stream0 global interrupt</description>
         <value>56</value>
-      </interrupt>	
+      </interrupt>
       <interrupt>
         <name>DMA2_Stream1</name>
         <description>DMA2 Stream1 global interrupt</description>

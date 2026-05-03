@@ -1,10 +1,36 @@
 # Laboratorio 1 — GPIO bare-metal en STM32 NUCLEO-F412ZG
 
+[![Hardware](https://img.shields.io/badge/Hardware-STM32_NUCLEO--F412ZG-03234B.svg?logo=stmicroelectronics&logoColor=white)](https://www.st.com/en/evaluation-tools/nucleo-f412zg.html)
+[![Toolchain](https://img.shields.io/badge/Toolchain-arm--none--eabi--gcc-A8B9CC.svg?logo=arm&logoColor=white)](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+[![GitHub Classroom](https://img.shields.io/badge/GitHub-Classroom-181717.svg?logo=github)](https://classroom.github.com/classrooms/274591709-mmue-arquitectura-sistemas-embebidos-2026)
+
+---
+
+## Tabla de contenidos
+
+- [Contexto](#contexto)
+- [Objetivos](#objetivos)
+- [Resultado esperado](#resultado-esperado)
+- [Hardware](#hardware)
+- [Documentación a consultar](#documentación-a-consultar)
+- [Flujo con GitHub Classroom](#flujo-con-github-classroom)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Tareas del alumnado](#tareas-del-alumnado)
+- [Hitos sugeridos](#hitos-sugeridos)
+- [Entorno de desarrollo](#entorno-de-desarrollo)
+- [Secuencia técnica de referencia](#secuencia-técnica-de-referencia)
+- [Errores frecuentes](#errores-frecuentes)
+- [Rúbrica](#rúbrica)
+
+---
+
 ## Contexto
 
 Esta práctica introduce el flujo mínimo de desarrollo de firmware para sistemas embebidos usando una placa STM32 NUCLEO-F412ZG y desarrollo **bare-metal**, sin HAL, sin CubeMX y sin build system complejo. La placa integra un programador y depurador ST-LINK, por lo que puede programarse directamente sin hardware externo adicional.
 
 La práctica está pensada como base del resto de laboratorios de la asignatura. El mismo repositorio evolucionará en prácticas sucesivas: arquitectura de software, pruebas, análisis estático, debug y variantes del producto.
+
+---
 
 ## Objetivos
 
@@ -16,6 +42,8 @@ Al finalizar esta práctica, el alumnado deberá ser capaz de:
 - Implementar un driver básico de GPIO para leer un botón con polling y controlar un LED.
 - Trabajar sobre un repositorio GitHub con commits frecuentes y mensajes claros.
 
+---
+
 ## Resultado esperado
 
 El programa final lee el botón de usuario B1 y enciende o apaga el LED de usuario LD2 mediante polling:
@@ -23,11 +51,15 @@ El programa final lee el botón de usuario B1 y enciende o apaga el LED de usuar
 - **B1** → PC13 (botón con pull-up: nivel alto en reposo, bajo al pulsar)
 - **LD2** → PB7 (LED azul: nivel alto = encendido)
 
+---
+
 ## Hardware
 
 - STM32 NUCLEO-F412ZG
 - Cable USB-A a Mini-B para alimentación y ST-LINK
 - Jumpers CN4 en ON (configuración por defecto para programar el micro de la propia placa)
+
+---
 
 ## Documentación a consultar
 
@@ -38,6 +70,8 @@ Esta práctica obliga a usar documentación real. Descarga los documentos desde 
 | **UM1974** — Manual de usuario Nucleo-144 | Localizar LED, botón, jumpers y ST-LINK |
 | **Datasheet STM32F412ZG** | Identificar encapsulado y pines |
 | **RM0402** — Reference Manual STM32F412 | Mapa de memoria, RCC y GPIO |
+
+---
 
 ## Flujo con GitHub Classroom
 
@@ -84,10 +118,12 @@ Consulta los resultados en la pestaña **Actions** de tu repositorio. Puedes hac
 
 La entrega se realiza automáticamente: el profesor accede al repositorio de cada alumno en la organización de GitHub Classroom. No es necesario crear una pull request ni enviar nada por correo. Asegúrate de que tu último commit de entrega esté subido antes de la fecha límite.
 
+---
+
 ## Estructura del repositorio
 
 ```text
-Lab1_Bare_Metal_GPIO/
+Raíz del repositorio/
 ├── README.md
 ├── respuestas.env              ← rellena con tus respuestas a las preguntas guiadas
 ├── .gitignore
@@ -111,6 +147,8 @@ Lab1_Bare_Metal_GPIO/
 ```
 
 Los archivos marcados como **completo** son parte de la plantilla y no deben modificarse. Los marcados con **TODO** son los que debes implementar.
+
+---
 
 ## Tareas del alumnado
 
@@ -189,6 +227,8 @@ Consulta [`debug/README.md`](debug/README.md) para más detalles sobre qué pued
 
 Comprueba que el LED LD2 (azul) se enciende al pulsar B1 y se apaga al soltarlo.
 
+---
+
 ## Hitos sugeridos
 
 Trabaja de forma incremental — un commit por hito:
@@ -199,6 +239,8 @@ Trabaja de forma incremental — un commit por hito:
 | H2 — Driver GPIO completo | Las funciones del driver funcionan correctamente |
 | H3 — Botón controla LED | B1 enciende y apaga LD2 por polling |
 
+---
+
 ## Entorno de desarrollo
 
 - Editor: VS Code (recomendado) o cualquier editor de texto.
@@ -206,6 +248,8 @@ Trabaja de forma incremental — un commit por hito:
 - Toolchain: `arm-none-eabi-gcc` — instala con `sudo apt install gcc-arm-none-eabi`.
 - Programador / depurador: OpenOCD — `sudo apt install openocd` (Linux/WSL) o [gnutoolchains.com/arm-eabi/openocd](https://gnutoolchains.com/arm-eabi/openocd/) (Windows; preinstalado en equipos del laboratorio).
 - Control de versiones: Git + GitHub Classroom.
+
+---
 
 ## Secuencia técnica de referencia
 
@@ -216,6 +260,8 @@ Trabaja de forma incremental — un commit por hito:
 5. Leer RM0402 → IDR / BSRR → implementar lectura y escritura.
 6. Compilar → flashear → verificar en placa.
 
+---
+
 ## Errores frecuentes
 
 - No habilitar el reloj del GPIO antes de acceder a sus registros.
@@ -223,6 +269,8 @@ Trabaja de forma incremental — un commit por hito:
 - Confundir el nivel activo del botón al leer el IDR.
 - Usar documentación de otra familia de STM32.
 - Subir archivos binarios al repositorio (usa `.gitignore`).
+
+---
 
 ## Rúbrica
 

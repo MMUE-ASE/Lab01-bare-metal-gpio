@@ -4,6 +4,11 @@
     "ms-vscode.cpptools-extension-pack",
     "marus25.cortex-debug",
     "ms-vscode.vscode-serial-monitor",
-    "GitHub.vscode-pull-request-github"
+    "mhutchie.git-graph",
+    "bierner.markdown-preview-github-styles",
+    "bierner.markdown-mermaid",
+    "bierner.markdown-emoji",
+    "mcu-debug.memory-view",
+    "tomoki1207.pdf"
   ]
 }

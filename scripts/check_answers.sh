@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# Corrección automática de preguntas guiadas — Lab 1
+# Automatic grader for guided questions — Lab 1
 #
-# Uso:
-#   bash check_answers.sh <respuestas_alumno.env> <clave_respuestas.env>
+# Usage:
+#   bash check_answers.sh <answers.env> <answer_key.env>
 #
-# La clave de respuestas viene de un secret de organización en GitHub Actions
-# y nunca está almacenada en el repositorio.
+# The answer key comes from a GitHub Actions organization secret
+# and is never stored in the repository.
 
 set -euo pipefail
 
-STUDENT_FILE="${1:-respuestas.env}"
+STUDENT_FILE="${1:-answers.env}"
 KEY_FILE="${2:-}"
 
 # ---------------------------------------------------------------------------
-# Helpers de parseo
+# Parsing helpers
 # ---------------------------------------------------------------------------
 
 get_from() {
@@ -37,7 +37,7 @@ norm_hex() {
     [[ "$val" =~ ^[0-9a-f]+$ ]] && printf "%08x" "0x${val}" 2>/dev/null || echo ""
 }
 
-# Rellena con puntos hasta la columna fija
+# Pad with dots to a fixed column
 dots() {
     local label="$1" width=36
     local n=$(( width - ${#label} ))
@@ -46,7 +46,7 @@ dots() {
 }
 
 # ---------------------------------------------------------------------------
-# Tipos de comparación por clave
+# Comparison type per key
 # ---------------------------------------------------------------------------
 
 declare -A KEY_TYPE
@@ -60,82 +60,82 @@ KEY_TYPE[IDR_OFFSET]="hex";        KEY_TYPE[ODR_OFFSET]="hex"
 KEY_TYPE[PC13_IDR_BIT]="int";      KEY_TYPE[PB7_ODR_BIT]="int"
 
 # ---------------------------------------------------------------------------
-# Pistas por clave (sin revelar la respuesta)
+# Hints per key (without revealing the answer)
 # ---------------------------------------------------------------------------
 
 declare -A HINT
-HINT[B1_PIN]="UM1974 → sección 'Push-button'"
-HINT[LD2_PIN]="UM1974 → sección 'LEDs'"
-HINT[B1_IDLE_LEVEL]="fíjate en la resistencia pull-up del esquema eléctrico"
-HINT[B1_PRESSED_LEVEL]="¿a qué tensión conecta el pin el botón al cerrarse?"
+HINT[B1_PIN]="UM1974 → section 'Push-button'"
+HINT[LD2_PIN]="UM1974 → section 'LEDs'"
+HINT[B1_IDLE_LEVEL]="check the pull-up resistor in the schematic"
+HINT[B1_PRESSED_LEVEL]="what voltage does the button connect to the pin when closed?"
 HINT[RCC_BASE]="RM0402 → Memory map → AHB1 peripherals"
 HINT[GPIOB_BASE]="RM0402 → Memory map → AHB1 peripherals"
 HINT[GPIOC_BASE]="RM0402 → Memory map → AHB1 peripherals"
-HINT[GPIOBEN_BIT]="RM0402 → RCC_AHB1ENR → campo GPIOBEN"
-HINT[GPIOCEN_BIT]="RM0402 → RCC_AHB1ENR → campo GPIOCEN"
-HINT[AHB1ENR_MASK]="OR de los dos bits anteriores"
-HINT[MODER_BITS_PER_PIN]="RM0402 → GPIOx_MODER → ancho de cada campo MODERy"
-HINT[MODER_INPUT_VAL]="RM0402 → GPIOx_MODER → valor '00'"
-HINT[MODER_OUTPUT_VAL]="RM0402 → GPIOx_MODER → valor '01'"
-HINT[PB7_MODER_BIT]="fórmula: número_pin × bits_por_pin"
-HINT[PC13_MODER_BIT]="fórmula: número_pin × bits_por_pin"
-HINT[IDR_OFFSET]="RM0402 → tabla de registros GPIO → GPIOx_IDR"
-HINT[ODR_OFFSET]="RM0402 → tabla de registros GPIO → GPIOx_ODR"
-HINT[PC13_IDR_BIT]="el bit N del IDR corresponde al pin N"
-HINT[PB7_ODR_BIT]="el bit N del ODR corresponde al pin N"
+HINT[GPIOBEN_BIT]="RM0402 → RCC_AHB1ENR → field GPIOBEN"
+HINT[GPIOCEN_BIT]="RM0402 → RCC_AHB1ENR → field GPIOCEN"
+HINT[AHB1ENR_MASK]="OR of the two previous bits"
+HINT[MODER_BITS_PER_PIN]="RM0402 → GPIOx_MODER → width of each MODERy field"
+HINT[MODER_INPUT_VAL]="RM0402 → GPIOx_MODER → value '00'"
+HINT[MODER_OUTPUT_VAL]="RM0402 → GPIOx_MODER → value '01'"
+HINT[PB7_MODER_BIT]="formula: pin_number × bits_per_pin"
+HINT[PC13_MODER_BIT]="formula: pin_number × bits_per_pin"
+HINT[IDR_OFFSET]="RM0402 → GPIO register table → GPIOx_IDR"
+HINT[ODR_OFFSET]="RM0402 → GPIO register table → GPIOx_ODR"
+HINT[PC13_IDR_BIT]="bit N of IDR corresponds to pin N"
+HINT[PB7_ODR_BIT]="bit N of ODR corresponds to pin N"
 
 # ---------------------------------------------------------------------------
-# Orden de presentación con marcadores de sección (prefijo ##)
+# Display order with section markers (## prefix)
 # ---------------------------------------------------------------------------
 
 ORDERED_KEYS=(
-    "##Bloque 1 . Hardware de la placa"
+    "##Block 1 . Board hardware"
     B1_PIN LD2_PIN B1_IDLE_LEVEL B1_PRESSED_LEVEL
-    "##Bloque 2 . Mapa de memoria"
+    "##Block 2 . Memory map"
     RCC_BASE GPIOB_BASE GPIOC_BASE
-    "##Bloque 3 . Reloj de perifericos (RCC_AHB1ENR)"
+    "##Block 3 . Peripheral clock (RCC_AHB1ENR)"
     GPIOBEN_BIT GPIOCEN_BIT AHB1ENR_MASK
-    "##Bloque 4 . Modo de pin (GPIOx_MODER)"
+    "##Block 4 . Pin mode (GPIOx_MODER)"
     MODER_BITS_PER_PIN MODER_INPUT_VAL MODER_OUTPUT_VAL PB7_MODER_BIT PC13_MODER_BIT
-    "##Bloque 5 . Lectura y escritura (IDR / ODR)"
+    "##Block 5 . Read and write (IDR / ODR)"
     IDR_OFFSET ODR_OFFSET PC13_IDR_BIT PB7_ODR_BIT
 )
 
 # ---------------------------------------------------------------------------
-# Guardas de entrada
+# Input guards
 # ---------------------------------------------------------------------------
 
 if [[ ! -f "$STUDENT_FILE" ]]; then
-    echo "ERROR: No se encuentra el fichero del alumno: $STUDENT_FILE"
+    echo "ERROR: Student file not found: $STUDENT_FILE"
     exit 1
 fi
 
 if [[ -z "$KEY_FILE" || ! -f "$KEY_FILE" ]]; then
-    echo "ERROR: Se requiere la clave de respuestas como segundo argumento."
-    echo "       Local: bash check_answers.sh respuestas.env clave.env"
-    echo "       CI:    el workflow la genera desde el secret LAB1_ANSWER_KEY"
+    echo "ERROR: Answer key required as second argument."
+    echo "       Local: bash check_answers.sh answers.env answer_key.env"
+    echo "       CI:    the workflow generates it from secret LAB1_ANSWER_KEY"
     exit 1
 fi
 
 # ---------------------------------------------------------------------------
-# Cabecera
+# Header
 # ---------------------------------------------------------------------------
 
 echo ""
 echo ".------------------------------------------------."
-echo "|  Lab 1  .  Corrector de preguntas guiadas      |"
+echo "|  Lab 1  .  Guided Questions Grader             |"
 echo "|  STM32F412ZG  .  NUCLEO-144                    |"
 echo "'------------------------------------------------'"
 
 PASSED=0; FAILED=0; SKIPPED=0
 
 # ---------------------------------------------------------------------------
-# Bucle de corrección
+# Grading loop
 # ---------------------------------------------------------------------------
 
 for item in "${ORDERED_KEYS[@]}"; do
 
-    # Marcador de sección
+    # Section marker
     if [[ "$item" == "##"* ]]; then
         echo ""
         echo "  -- ${item#"##"} --"
@@ -149,7 +149,7 @@ for item in "${ORDERED_KEYS[@]}"; do
     type="${KEY_TYPE[$key]}"
 
     if [[ -z "$student_raw" ]]; then
-        printf "  ⬜  %s %s sin respuesta\n" "$key" "$(dots "$key")"
+        printf "  ⬜  %s %s no answer\n" "$key" "$(dots "$key")"
         SKIPPED=$((SKIPPED + 1))
         continue
     fi
@@ -161,27 +161,27 @@ for item in "${ORDERED_KEYS[@]}"; do
     esac
 
     if [[ -z "$got" ]]; then
-        printf "  ❌  %s %s formato no reconocido ('%s')\n" "$key" "$(dots "$key")" "$student_raw"
-        printf "       → %s\n" "${HINT[$key]:-consulta el Reference Manual}"
+        printf "  ❌  %s %s unrecognized format ('%s')\n" "$key" "$(dots "$key")" "$student_raw"
+        printf "       → %s\n" "${HINT[$key]:-check the Reference Manual}"
         FAILED=$((FAILED + 1))
     elif [[ "$got" == "$exp" ]]; then
         printf "  ✅  %s %s ok\n" "$key" "$(dots "$key")"
         PASSED=$((PASSED + 1))
     else
-        printf "  ❌  %s %s incorrecto\n" "$key" "$(dots "$key")"
-        printf "       → %s\n" "${HINT[$key]:-consulta el Reference Manual}"
+        printf "  ❌  %s %s incorrect\n" "$key" "$(dots "$key")"
+        printf "       → %s\n" "${HINT[$key]:-check the Reference Manual}"
         FAILED=$((FAILED + 1))
     fi
 
 done
 
 # ---------------------------------------------------------------------------
-# Resumen final
+# Final summary
 # ---------------------------------------------------------------------------
 
 TOTAL=$(( PASSED + FAILED + SKIPPED ))
 
-# Nota sobre 10 (división entera por defecto en bash)
+# Score out of 10 (integer division)
 if [[ $TOTAL -gt 0 ]]; then
     SCORE=$(( PASSED * 10 / TOTAL ))
     filled=$(( PASSED * 20 / TOTAL ))
@@ -195,7 +195,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Arte ASCII según nota — LD2 más o menos encendido
+# ASCII art based on score — LD2 brightness
 # ---------------------------------------------------------------------------
 
 echo ""
@@ -208,53 +208,53 @@ if [[ $SCORE -eq 10 ]]; then
     echo "      .    * . * . * . *    ."
     echo "        .                 ."
     echo "          . . . . . . . ."
-    echo "        [ LD2  a plena potencia ]"
+    echo "        [ LD2  full brightness ]"
 elif [[ $SCORE -ge 7 ]]; then
     echo "          . . . . . ."
     echo "        .     * *     ."
     echo "       .    *     *    ."
     echo "        .     * *     ."
     echo "          . . . . . ."
-    echo "          [ LD2  encendido ]"
+    echo "          [ LD2  on ]"
 elif [[ $SCORE -ge 5 ]]; then
     echo "          . . . . ."
     echo "        .    . .    ."
     echo "       .             ."
     echo "        .    . .    ."
     echo "          . . . . ."
-    echo "          [ LD2  tenue ]"
+    echo "          [ LD2  dim ]"
 else
     echo "          . . . . ."
     echo "        .           ."
     echo "       .             ."
     echo "        .           ."
     echo "          . . . . ."
-    echo "          [ LD2  apagado ]"
+    echo "          [ LD2  off ]"
 fi
 
 # ---------------------------------------------------------------------------
-# Caja de puntuación
+# Score box
 # ---------------------------------------------------------------------------
 
 echo ""
 echo ".------------------------------------------------."
-printf "|  Correctas: %2d / %2d  .  Nota: %2d / 10%-10s|\n" \
+printf "|  Correct: %2d / %2d  .  Score: %2d / 10%-11s|\n" \
     "$PASSED" "$TOTAL" "$SCORE" ""
 printf "|  [%s]  %3d%%%-18s|\n" "$bar" "$pct" ""
 echo "|                                                |"
 
 if [[ $SCORE -eq 10 ]]; then
-    echo "|  Registro perfecto. El chip te obedece.        |"
-    echo "|  Ya puedes escribir el driver. 🚀              |"
+    echo "|  Perfect register map. The chip obeys you.     |"
+    echo "|  Time to write the driver. 🚀                  |"
 elif [[ $SCORE -ge 7 ]]; then
-    echo "|  Buen trabajo. Dominas los registros.          |"
-    echo "|  Revisa los fallos y llega al 10. 💪           |"
+    echo "|  Good work. You know your registers.           |"
+    echo "|  Fix the remaining errors and reach 10. 💪     |"
 elif [[ $SCORE -ge 5 ]]; then
-    echo "|  Aprobado, pero el micro merece más y tú puedes.  |"
-    echo "|  Vuelve al Reference Manual. 📖                 |"
+    echo "|  Passing, but the MCU deserves better.         |"
+    echo "|  Go back to the Reference Manual. 📖           |"
 else
-    echo "|  El LED sigue apagado... por ahora.            |"
-    echo "|  Cada registro que leas te acerca al 10. 🔍   |"
+    echo "|  The LED is still off... for now.              |"
+    echo "|  Every register you read gets you closer. 🔍  |"
 fi
 
 echo "'------------------------------------------------'"

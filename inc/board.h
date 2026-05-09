@@ -5,7 +5,7 @@
  * board.h — Signal assignments for the NUCLEO-F412ZG board
  *
  * Fill in the TODOs with the values you found in UM1974
- * and recorded in respuestas.env.
+ * and recorded in answers.env.
  *
  * Source: UM1974 — STM32 Nucleo-144 boards (MB1137)
  */

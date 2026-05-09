@@ -1,4 +1,4 @@
-# Laboratorio 1 — GPIO bare-metal en STM32 NUCLEO-F412ZG
+# Lab 1 — Bare-Metal GPIO on STM32 NUCLEO-F412ZG
 
 [![Hardware](https://img.shields.io/badge/Hardware-STM32_NUCLEO--F412ZG-03234B.svg?logo=stmicroelectronics&logoColor=white)](https://www.st.com/en/evaluation-tools/nucleo-f412zg.html)
 [![Toolchain](https://img.shields.io/badge/Toolchain-arm--none--eabi--gcc-A8B9CC.svg?logo=arm&logoColor=white)](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
@@ -6,278 +6,272 @@
 
 ---
 
-## Tabla de contenidos
+## Table of Contents
 
-- [Contexto](#contexto)
-- [Objetivos](#objetivos)
-- [Resultado esperado](#resultado-esperado)
+- [Context](#context)
+- [Objectives](#objectives)
+- [Expected Result](#expected-result)
 - [Hardware](#hardware)
-- [Documentación a consultar](#documentación-a-consultar)
-- [Flujo con GitHub Classroom](#flujo-con-github-classroom)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Tareas del alumnado](#tareas-del-alumnado)
-- [Hitos sugeridos](#hitos-sugeridos)
-- [Entorno de desarrollo](#entorno-de-desarrollo)
-- [Secuencia técnica de referencia](#secuencia-técnica-de-referencia)
-- [Errores frecuentes](#errores-frecuentes)
-- [Rúbrica](#rúbrica)
+- [Documentation to Consult](#documentation-to-consult)
+- [Workflow with GitHub Classroom](#workflow-with-github-classroom)
+- [Repository Structure](#repository-structure)
+- [Student Tasks](#student-tasks)
+- [Suggested Milestones](#suggested-milestones)
+- [Development Environment](#development-environment)
+- [Reference Technical Sequence](#reference-technical-sequence)
+- [Common Errors](#common-errors)
+- [Rubric](#rubric)
 
 ---
 
-## Contexto
+## Context
 
-Esta práctica introduce el flujo mínimo de desarrollo de firmware para sistemas embebidos usando una placa STM32 NUCLEO-F412ZG y desarrollo **bare-metal**, sin HAL, sin CubeMX y sin build system complejo. La placa integra un programador y depurador ST-LINK, por lo que puede programarse directamente sin hardware externo adicional.
+This lab introduces the minimum firmware development workflow for embedded systems using an STM32 NUCLEO-F412ZG board and **bare-metal** development, without HAL, without CubeMX, and without a complex build system.
 
-La práctica está pensada como base del resto de laboratorios de la asignatura. El mismo repositorio evolucionará en prácticas sucesivas: arquitectura de software, pruebas, análisis estático, debug y variantes del producto.
+The board includes an ST-LINK programmer and debugger, so it can be programmed directly without additional external hardware.
 
----
-
-## Objetivos
-
-Al finalizar esta práctica, el alumnado deberá ser capaz de:
-
-- Consultar el manual de usuario de la NUCLEO y el Reference Manual del microcontrolador para extraer información de hardware y registros.
-- Compilar firmware con el toolchain de Arm desde línea de comandos.
-- Flashear y ejecutar un binario en la placa.
-- Implementar un driver básico de GPIO para leer un botón con polling y controlar un LED.
-- Trabajar sobre un repositorio GitHub con commits frecuentes y mensajes claros.
+This lab is intended as the basis for the rest of the course laboratories. The same repository will evolve in later labs: software architecture, testing, static analysis, debugging, and product variants.
 
 ---
 
-## Resultado esperado
+## Objectives
 
-El programa final lee el botón de usuario B1 y enciende o apaga el LED de usuario LD2 mediante polling:
+By the end of this lab, students should be able to:
 
-- **B1** → PC13 (botón con pull-up: nivel alto en reposo, bajo al pulsar)
-- **LD2** → PB7 (LED azul: nivel alto = encendido)
+- Consult the NUCLEO user manual and the microcontroller Reference Manual to extract hardware and register information.
+- Build firmware with the Arm toolchain from the command line.
+- Flash and run a binary on the board.
+- Implement a basic GPIO driver to read a button by polling and control an LED.
+- Work on a GitHub repository with frequent commits and clear messages.
+
+---
+
+## Expected Result
+
+The final program reads the user button B1 and turns the user LED LD2 on or off by polling:
+
+- **B1** → Pull-up button: high level at rest, low level when pressed
+- **LD2** → Blue LED: high level = ON
 
 ---
 
 ## Hardware
 
 - STM32 NUCLEO-F412ZG
-- Cable USB-A a Mini-B para alimentación y ST-LINK
-- Jumpers CN4 en ON (configuración por defecto para programar el micro de la propia placa)
+- USB-A to Mini-B cable for power and ST-LINK
+- CN4 jumpers in ON position (default configuration to program the MCU on the board itself)
 
 ---
 
-## Documentación a consultar
+## Documentation to Consult
 
-Esta práctica obliga a usar documentación real. Descarga los documentos desde el campus virtual de la asignatura antes de empezar:
+This lab requires the use of real documentation. Download the documents from the course virtual campus before starting:
 
-| Documento | Uso en esta práctica |
-| --- | --- |
-| **UM1974** — Manual de usuario Nucleo-144 | Localizar LED, botón, jumpers y ST-LINK |
-| **Datasheet STM32F412ZG** | Identificar encapsulado y pines |
-| **RM0402** — Reference Manual STM32F412 | Mapa de memoria, RCC y GPIO |
+| Document                            | Use in This Lab                          |
+| ----------------------------------- | ---------------------------------------- |
+| UM1974 — Nucleo-144 User Manual     | Locate LED, button, jumpers, and ST-LINK |
+| STM32F412ZG Datasheet               | Identify package and pins                |
+| RM0402 — STM32F412 Reference Manual | Memory map, RCC, and GPIO                |
 
----
+## Workflow with GitHub Classroom
 
-## Flujo con GitHub Classroom
+The course uses **GitHub Classroom** for lab management and submission. Each student receives an individual copy of the template repository when accepting the assignment.
 
-La asignatura usa **GitHub Classroom** para la gestión y entrega de prácticas. Cada alumno recibe una copia individual del repositorio plantilla en el momento de aceptar la tarea.
+### How to Start
 
-### Cómo empezar
-
-1. Accede al enlace de la tarea publicado por el profesor en el campus virtual.
-2. Acepta el *assignment* en GitHub Classroom — se crea automáticamente un repositorio privado a tu nombre.
-3. Clona tu repositorio en local:
+1. Access the assignment link published by the instructor in the virtual campus.
+2. Accept the assignment in GitHub Classroom — a private repository in your name will be created automatically.
+3. Clone your repository locally:
 
    ```bash
-   git clone https://github.com/<org>/<repo-asignado>.git
-   cd <repo-asignado>
+   git clone https://github.com/<org>/<assigned-repo>.git
+   cd <assigned-repo>
    ```
 
-4. Trabaja sobre ese repositorio. Cada hito funcional debe ser un commit.
+4. Work on that repository. Each functional milestone should be one commit.
 
-### Feedback automático
+### Automatic Feedback
 
-El repositorio incluye dos flujos de GitHub Actions que se ejecutan en cada `push`:
+The repository includes two GitHub Actions workflows that run on every `push`:
 
-| Workflow | Qué comprueba |
-| --- | --- |
-| **Lab 1 — Corrección preguntas guiadas** | Respuestas en `respuestas.env` |
-| **Lab 1 — Verificación de compilación** | Que el código compila sin errores |
+| Workflow                         | What It Checks                      |
+| -------------------------------- | ----------------------------------- |
+| Lab 1 — Guided Questions Grading | Answers in `answers.env`            |
+| Lab 1 — Build Verification       | That the code builds without errors |
 
-Consulta los resultados en la pestaña **Actions** de tu repositorio. Puedes hacer tantos `push` como necesites — cada uno actualiza el feedback.
+Check the results in the **Actions** tab of your repository. You may push as many times as needed—each push updates the feedback.
 
-### Convenciones de commits
+### Commit Conventions
 
-- Un commit por hito funcional (LED parpadea, botón detectado, driver completo…).
-- Mensajes breves y técnicos, en minúsculas:
-
-  ```text
-  feat: implementar gpio_config_output
-  fix: corregir mascara MODER para PB7
-  docs: completar respuestas preguntas guiadas
-  ```
-
-- No subas archivos binarios (`*.elf`, `*.bin`, `*.o`) — están en `.gitignore`.
-
-### Entrega
-
-La entrega se realiza automáticamente: el profesor accede al repositorio de cada alumno en la organización de GitHub Classroom. No es necesario crear una pull request ni enviar nada por correo. Asegúrate de que tu último commit de entrega esté subido antes de la fecha límite.
-
----
-
-## Estructura del repositorio
+- One commit per functional milestone (LED blinks, button detected, driver complete, etc.).
+- Short, technical, lowercase commit messages:
 
 ```text
-Raíz del repositorio/
-├── README.md
-├── respuestas.env              ← rellena con tus respuestas a las preguntas guiadas
-├── .gitignore
-├── docs/
-│   └── preguntas_guiadas.md   ← preguntas de documentación (lee antes de codificar)
-├── inc/
-│   ├── board.h                ← TODO: asignación de pines y puertos
-│   ├── rcc.h                  ← TODO: máscaras de reloj (RCC_AHB1ENR)
-│   └── gpio.h                 ← completo — direcciones y declaraciones del driver
-├── src/
-│   ├── gpio.c                 ← TODO: implementación del driver GPIO
-│   └── main.c                 ← TODO: inicialización y bucle de polling
-├── startup/
-│   └── startup_stm32f412zg.s  ← completo — tabla de vectores y Reset_Handler
-├── linker/
-│   └── stm32f412zg.ld         ← completo — script de enlazado
-└── scripts/
-    ├── build.sh               ← compila y genera ELF/BIN/HEX
-    ├── flash.sh               ← programa la placa via ST-LINK
-    └── check_answers.sh       ← corrector local de respuestas (uso del CI)
+feat: implement gpio_config_output
+fix: correct MODER mask for PB7
+docs: complete guided question answers
 ```
 
-Los archivos marcados como **completo** son parte de la plantilla y no deben modificarse. Los marcados con **TODO** son los que debes implementar.
+Do not upload binary files (`*.elf`, `*.bin`, `*.o`) — they are already included in `.gitignore`.
+
+### Submission
+
+Submission is automatic: the instructor accesses each student's repository in the GitHub Classroom organization. You do not need to create a pull request or send anything by email. Make sure your final submission commit has been pushed before the deadline.
 
 ---
 
-## Tareas del alumnado
+## Repository Structure
 
-### Parte 1 — Preguntas guiadas de documentación
+```text
+Repository root/
+├── README.md
+├── answers.env              ← fill in your answers to the guided questions
+├── .gitignore
+├── docs/
+│   └── guided_test.md    ← documentation questions (read before coding)
+├── inc/
+│   ├── board.h                 ← TODO: pin and port mapping
+│   ├── rcc.h                   ← TODO: clock masks (RCC_AHB1ENR)
+│   └── gpio.h                  ← complete — addresses and driver declarations
+├── src/
+│   ├── gpio.c                  ← TODO: GPIO driver implementation
+│   └── main.c                  ← TODO: initialization and polling loop
+├── startup/
+│   └── startup_stm32f412zg.s   ← complete — vector table and Reset_Handler
+├── linker/
+│   └── stm32f412zg.ld          ← complete — linker script
+└── scripts/
+    ├── build.sh                ← builds and generates ELF/BIN/HEX
+    ├── flash.sh                ← programs the board via ST-LINK
+    └── check_answers.sh        ← local answer checker (CI-related use)
+```
 
-Antes de escribir código, lee [`docs/preguntas_guiadas.md`](docs/preguntas_guiadas.md) y rellena [`respuestas.env`](respuestas.env) con los valores que encuentres en la documentación técnica.
+Files marked as **complete** are part of the template and must not be modified. Files marked as **TODO** are the ones you must implement.
 
-El corrector automático comprueba tus respuestas en cada `push` y te indica qué está bien, qué está mal y dónde buscar.
+---
 
-### Parte 2 — `inc/board.h`
+## Student Tasks
 
-Rellena las macros con los pines y puertos correctos de B1 y LD2 según el UM1974 y tus respuestas del Bloque 1:
+### Part 1 — Guided Documentation Questions
+
+Before writing code, read [docs/guided_test.md](docs/guided_test.md) and fill in [answers.env](answers.env) with the values you find in the technical documentation.
+
+The automatic grader checks your answers on every `push` and tells you what is correct, what is incorrect, and where to look.
+
+### Part 2 — `inc/board.h`
+
+Fill in the macros with the correct pins and ports for B1 and LD2 according to UM1974 and your answers from Block 1:
 
 ```c
-#define B1_PIN    /* número de pin */
+#define B1_PIN    /* pin number */
 #define B1_PORT   /* GPIOX_BASE */
-#define LD2_PIN   /* número de pin */
+#define LD2_PIN   /* pin number */
 #define LD2_PORT  /* GPIOX_BASE */
 ```
 
-### Parte 3 — `inc/rcc.h`
+### Part 3 — `inc/rcc.h`
 
-Rellena las máscaras de habilitación de reloj según el RM0402 y tus respuestas del Bloque 3:
+Fill in the clock enable masks according to RM0402 and your answers from Block 3:
 
 ```c
 #define RCC_AHB1ENR_GPIOBEN   /* (1U << ?) */
 #define RCC_AHB1ENR_GPIOCEN   /* (1U << ?) */
 ```
 
-### Parte 4 — `src/gpio.c`
+### Part 4 — `src/gpio.c`
 
-Implementa las cinco funciones del driver. Cada función tiene un comentario `TODO` con los pasos y las referencias al bloque de preguntas guiadas correspondiente:
+Implement the five driver functions. Each function includes a `TODO` comment with the steps and references to the corresponding guided-question block:
 
-| Función | Bloque de referencia |
-| --- | --- |
-| `gpio_enable_clock` | Bloque 3 — RCC_AHB1ENR |
-| `gpio_config_input` | Bloque 4 — GPIOx_MODER |
-| `gpio_config_output` | Bloque 4 — GPIOx_MODER |
-| `gpio_read` | Bloque 5 — IDR |
-| `gpio_write` | Bloque 5 — BSRR |
+| Function             | Reference Block         |
+| -------------------- | ----------------------- |
+| `gpio_enable_clock`  | Block 3 — `RCC_AHB1ENR` |
+| `gpio_config_input`  | Block 4 — `GPIOx_MODER` |
+| `gpio_config_output` | Block 4 — `GPIOx_MODER` |
+| `gpio_read`          | Block 5 — `IDR`         |
+| `gpio_write`         | Block 5 — `BSRR`        |
 
-### Parte 5 — `src/main.c`
+### Part 5 — `src/main.c`
 
-Completa los cuatro `TODO` del `main`:
+Complete the four `TODO` items in `main`:
 
-1. Habilitar el reloj de los puertos usados.
-2. Configurar LD2 como salida.
-3. Configurar B1 como entrada.
-4. Bucle de polling: leer B1 y controlar LD2 directamente.
+- Enable the clock for the ports used.
+- Configure LD2 as output.
+- Configure B1 as input.
+- Polling loop: read B1 and control LD2 directly.
 
-### Parte 6 — Verificación en placa
+### Part 6 — Verification on Hardware
 
-#### Flashear (línea de comandos)
+#### Flashing from Command Line
 
 ```bash
-bash scripts/build.sh   # compila → output/lab1.elf
-bash scripts/flash.sh   # programa la placa
+bash scripts/build.sh   # build → output/lab1.elf
+bash scripts/flash.sh   # program the board
 ```
 
-#### Flashear (VS Code)
+#### Flashing from VS Code
 
-**Ctrl+Shift+P** → *Tasks: Run Task* → **flash** — compila y flashea en un solo paso.
+`Ctrl+Shift+P` → _Tasks: Run Task_ → **flash** — builds and flashes in one step.
 
-#### Depurar (VS Code)
+#### Debugging in VS Code
 
-Pulsa **F5** — compila, flashea y abre una sesión de debug que se detiene al inicio de `main()`.
+Press `F5` — builds, flashes, and opens a debug session that stops at the start of `main()`.
 
-| Tecla | Acción |
-| --- | --- |
-| **F10** | Paso a paso (sin entrar en funciones) |
-| **F11** | Paso a paso (entrando en funciones) |
-| **F5** | Continuar hasta el siguiente breakpoint |
-| **Shift+F5** | Detener |
+| Key          | Action                      |
+| ------------ | --------------------------- |
+| **F10**      | Step over                   |
+| **F11**      | Step into                   |
+| **F5**       | Continue to next breakpoint |
+| **Shift+F5** | Stop                        |
 
-Consulta [`debug/README.md`](debug/README.md) para más detalles sobre qué puedes inspeccionar durante el debug.
+See [debug/README.md](debug/README.md) for more details on what you can inspect during debugging.
 
-Comprueba que el LED LD2 (azul) se enciende al pulsar B1 y se apaga al soltarlo.
+Verify that the blue LD2 LED turns on when B1 is pressed and turns off when it is released.
 
----
+## Suggested Milestones
 
-## Hitos sugeridos
+Work incrementally — one commit per milestone:
 
-Trabaja de forma incremental — un commit por hito:
+| Milestone                 | Success Criterion on Hardware                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| H1 — Fixed LED            | LD2 turns on at startup (temporarily write to ODR from `main`; H2 replaces this with `gpio_write`) |
+| H2 — Complete GPIO Driver | The driver functions work correctly                                                                |
+| H3 — Button Controls LED  | B1 turns LD2 on and off by polling                                                                 |
 
-| Hito | Criterio de éxito en placa |
-| --- | --- |
-| H1 — LED fijo | LD2 enciende al arrancar (escribe en ODR provisionalmente desde `main`; H2 lo reemplaza con `gpio_write`) |
-| H2 — Driver GPIO completo | Las funciones del driver funcionan correctamente |
-| H3 — Botón controla LED | B1 enciende y apaga LD2 por polling |
+## Development Environment
 
----
-
-## Entorno de desarrollo
-
-- Editor: VS Code (recomendado) o cualquier editor de texto.
-- Sistema operativo: WSL en Windows, o Linux nativo.
-- Toolchain: `arm-none-eabi-gcc` — instala con `sudo apt install gcc-arm-none-eabi`.
-- Programador / depurador: OpenOCD — `sudo apt install openocd` (Linux/WSL) o [gnutoolchains.com/arm-eabi/openocd](https://gnutoolchains.com/arm-eabi/openocd/) (Windows; preinstalado en equipos del laboratorio).
-- Control de versiones: Git + GitHub Classroom.
+- Editor: VS Code (recommended) or any text editor.
+- Operating system: WSL on Windows, or native Linux.
+- Toolchain: `arm-none-eabi-gcc` — install with `sudo apt install gcc-arm-none-eabi`.
+- Programmer / debugger: OpenOCD — `sudo apt install openocd` (Linux/WSL) or [gnutoolchains.com/arm-eabi/openocd](https://gnutoolchains.com/arm-eabi/openocd/) (Windows; preinstalled on lab machines).
+- Version control: Git + GitHub Classroom.
 
 ---
 
-## Secuencia técnica de referencia
+## Reference Technical Sequence
 
-1. Leer UM1974 → identificar pines de B1 y LD2.
-2. Leer RM0402 → mapa de memoria → obtener direcciones base de RCC, GPIOB, GPIOC.
-3. Leer RM0402 → RCC_AHB1ENR → calcular máscaras de habilitación.
-4. Leer RM0402 → GPIOx_MODER → calcular campo y máscara de cada pin.
-5. Leer RM0402 → IDR / BSRR → implementar lectura y escritura.
-6. Compilar → flashear → verificar en placa.
-
----
-
-## Errores frecuentes
-
-- No habilitar el reloj del GPIO antes de acceder a sus registros.
-- Confundir el número de pin con el número de bit en MODER (son distintos: MODER usa 2 bits por pin).
-- Confundir el nivel activo del botón al leer el IDR.
-- Usar documentación de otra familia de STM32.
-- Subir archivos binarios al repositorio (usa `.gitignore`).
+1. Read UM1974 → identify B1 and LD2 pins.
+2. Read RM0402 → memory map → obtain RCC, GPIOB, and GPIOC base addresses.
+3. Read RM0402 → `RCC_AHB1ENR` → calculate enable masks.
+4. Read RM0402 → `GPIOx_MODER` → calculate field and mask for each pin.
+5. Read RM0402 → `IDR` / `BSRR` → implement read and write.
+6. Build → flash → verify on hardware.
 
 ---
 
-## Rúbrica
+## Common Errors
 
-| Criterio | Peso |
-| --- | ---: |
-| Respuestas correctas en `respuestas.env` | 40 % |
-| Compilación sin errores | 20 % |
-| Funcionamiento en placa | 20 % |
-| Implementación correcta del driver GPIO | 10 % |
-| Calidad de commits y entrega | 10 % |
+- Not enabling the GPIO clock before accessing its registers.
+- Confusing pin number with bit number in `MODER` (they are different: `MODER` uses 2 bits per pin).
+- Misinterpreting the active level of the button when reading `IDR`.
+- Using documentation from another STM32 family.
+- Uploading binary files to the repository (use `.gitignore`).
+
+## Rubric
+
+| Criterion                          | Weight |
+| ---------------------------------- | -----: |
+| Correct answers in `answers.env`   |    40% |
+| Error-free build                   |    20% |
+| Correct behavior on hardware       |    20% |
+| Correct GPIO driver implementation |    10% |
+| Commit quality and submission      |    10% |

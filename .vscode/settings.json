@@ -13,6 +13,6 @@
   "editor.formatOnSave": false,
   "C_Cpp.default.compilerPath": "arm-none-eabi-gcc",
   "C_Cpp.default.intelliSenseMode": "gcc-arm",
-  // Ruta explícita necesaria porque VS Code no siempre hereda el PATH del sistema
+  // Explicit path needed because VS Code does not always inherit the system PATH
   "cortex-debug.openocdPath": "C:\\tools\\openocd\\bin\\openocd.exe"
 }

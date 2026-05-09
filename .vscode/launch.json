@@ -16,8 +16,8 @@
       "preLaunchTask": "build",
       "runToEntryPoint": "main",
       "showDevDebugOutput": "none",
-      // Coloca el SVD en debug/STM32F412.svd para ver los registros de
-      // periféricos en tiempo real (RCC, GPIO...) durante la depuración.
+      // Place the SVD at debug/STM32F412.svd to inspect peripheral registers
+      // (RCC, GPIO...) in real time during debugging.
       "svdFile": "${workspaceFolder}/debug/STM32F412.svd"
     }
   ]

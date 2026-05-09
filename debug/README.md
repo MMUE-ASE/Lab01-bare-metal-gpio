@@ -1,72 +1,73 @@
-# Depuración con VS Code — Cortex-Debug + OpenOCD
+# Debugging with VS Code — Cortex-Debug + OpenOCD
 
-## Cómo funciona
+---
 
-Cuando pulsas **F5** en VS Code ocurre lo siguiente:
+## How It Works
+
+When you press **F5** in VS Code, the following happens:
 
 ```text
 VS Code
-  └── Cortex-Debug (extensión)
-        ├── lanza  →  OpenOCD  ──SWD──►  ST-LINK  ──SWD──►  STM32F412ZG
-        │              (servidor GDB)        (hardware en la placa NUCLEO)
-        └── lanza  →  arm-none-eabi-gdb
-                       (cliente GDB, se conecta a OpenOCD por TCP)
+  └── Cortex-Debug (extension)
+        ├── launches → OpenOCD  (GDB server) ──SWD──► ST-LINK  (hardware on NUCLEO board) ──SWD──► STM32F412ZG
+        └── launches → arm-none-eabi-gdb
+                      (GDB client, connects to OpenOCD via TCP)
 ```
 
-1. **OpenOCD** abre una conexión SWD con el microcontrolador a través del ST-LINK integrado en la placa NUCLEO. Actúa como servidor GDB en el puerto 50000.
-2. **arm-none-eabi-gdb** se conecta a ese servidor, carga el binario `.elf` en la flash del micro y para la ejecución al inicio de `main()`.
-3. Desde ese punto controlas la ejecución línea a línea desde el editor.
+1. **OpenOCD** opens an SWD connection with the microcontroller via the integrated ST-LINK on the NUCLEO board. It acts as a GDB server on port 50000.
+2. **arm-none-eabi-gdb** connects to that server, loads the `.elf` binary into the microcontroller's flash, and halts execution at the start of `main()`.
+3. From that point, you control execution line by line from the editor.
 
-No se necesita STM32CubeIDE ni STM32CubeProgrammer para depurar.
+No STM32CubeIDE or STM32CubeProgrammer is needed for debugging.
 
 ---
 
-## Inicio rápido
+## Quick Start
 
-1. Conecta la placa NUCLEO-F412ZG por USB.
-2. Abre la carpeta `Lab1_Bare_Metal_GPIO/` en VS Code.
-3. Pulsa **F5** — VS Code compilará el proyecto, lo flasheará y arrancará la sesión de debug.
-4. La ejecución se detiene automáticamente al inicio de `main()`.
+1. Connect the NUCLEO-F412ZG board via USB.
+2. Open the `Lab1_Bare_Metal_GPIO/` folder in VS Code.
+3. Press **F5** — VS Code will build the project, flash it, and start the debug session.
+4. Execution automatically stops at the beginning of `main()`.
 
-### Teclas durante la sesión
+### Keys During the Session
 
-| Tecla | Acción |
-| --- | --- |
-| **F5** | Continuar hasta el siguiente breakpoint |
-| **F10** | Paso a paso — ejecuta la línea actual sin entrar en funciones |
-| **F11** | Paso a paso — entra dentro de la función llamada |
-| **Shift+F11** | Sale de la función actual |
-| **Shift+F5** | Detener la sesión de debug |
+| Key           | Action                                                       |
+| ------------- | ------------------------------------------------------------ |
+| **F5**        | Continue to next breakpoint                                  |
+| **F10**       | Step over — executes current line without entering functions |
+| **F11**       | Step into — enters called functions                          |
+| **Shift+F11** | Step out of current function                                 |
+| **Shift+F5**  | Stop debug session                                           |
 
 ### Breakpoints
 
-Haz clic en el margen izquierdo de cualquier línea de código (aparece un punto rojo) para añadir un breakpoint. La ejecución se detendrá al llegar a esa línea.
+Click the left margin of any code line (red dot appears) to add a breakpoint. Execution will stop when reaching that line.
 
 ---
 
-## Qué puedes inspeccionar
+## What You Can Inspect
 
-### Variables locales y globales
+### Local and Global Variables
 
-En el panel **Variables** (izquierda) puedes ver el valor de todas las variables en el ámbito actual mientras vas paso a paso.
+In the **Variables** panel (left), you can see the value of all variables in the current scope while stepping through code.
 
-### Registros del procesador
+### Processor Registers
 
-En el panel **Cortex Registers** puedes ver R0–R15, PC, SP y los registros de estado del Cortex-M4 en tiempo real.
+In the **Cortex Registers** panel, you can see R0–R15, PC, SP, and Cortex-M4 status registers in real time.
 
-### Registros de periféricos (SVD)
+### Peripheral Registers (SVD)
 
-El panel **Cortex Peripherals** muestra el valor actual de todos los registros del microcontrolador: `RCC_AHB1ENR`, `GPIOB_MODER`, `GPIOB_IDR`, `GPIOC_BSRR`… Es especialmente útil para verificar que tus funciones del driver GPIO escriben los valores correctos en los registros hardware.
+The **Cortex Peripherals** panel shows the current value of all microcontroller registers: `RCC_AHB1ENR`, `GPIOB_MODER`, `GPIOB_IDR`, `GPIOC_BSRR`… This is especially useful to verify that your GPIO driver functions write the correct values to the hardware registers.
 
-Para activarlo necesitas el fichero SVD del STM32F412. El fichero ya está referenciado en `.vscode/launch.json` — no necesitas cambiar nada más.
+To enable it, you need the SVD file for the STM32F412. The file is already referenced in `.vscode/launch.json` — no further changes needed.
 
 ---
 
-## Solución de problemas habituales
+## Common Troubleshooting
 
-| Síntoma | Causa probable | Solución |
-| --- | --- | --- |
-| `spawn openocd.exe ENOENT` | VS Code no encuentra el ejecutable | Comprobar `cortex-debug.openocdPath` en `.vscode/settings.json` |
-| `Examination failed` | El MCU está en sleep o HardFault | Ya resuelto con `debug/openocd-connect.cfg` — si persiste, desconecta y reconecta el USB |
-| `No ST-LINK device found` | Driver ST-LINK no instalado o placa no conectada | Instalar STM32CubeProgrammer para los drivers; reconectar USB |
-| GDB no carga el `.elf` | No se ha compilado aún | Ejecutar `bash scripts/build.sh` antes de F5, o dejar que el `preLaunchTask` lo haga |
+| Symptom                    | Likely Cause                                        | Solution                                                                                   |
+| -------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `spawn openocd.exe ENOENT` | VS Code cannot find the executable                  | Check `cortex-debug.openocdPath` in `.vscode/settings.json`                                |
+| `Examination failed`       | MCU in sleep or HardFault                           | Already fixed with `debug/openocd-connect.cfg` — if persists, disconnect and reconnect USB |
+| `No ST-LINK device found`  | ST-LINK driver not installed or board not connected | Install STM32CubeProgrammer for drivers; reconnect USB                                     |
+| GDB does not load `.elf`   | Project not yet built                               | Run `bash scripts/build.sh` before F5, or let `preLaunchTask` handle it                    |
